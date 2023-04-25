@@ -2,6 +2,7 @@ import React from 'react';
 import Head from "next/head";
 import { useState } from "react";
 import styles from "./index.module.css";
+import Footer from "./footer";
 
 export default function Home() {
   const [gender, setGender] = useState('Man');
@@ -103,7 +104,7 @@ export default function Home() {
             onChange={(e) => setPriceMax(Number.parseInt(e.target.value))}
           />
 
-          <label>Hobbies or Interests</label>
+          <label>Interests or Hobbies</label>
           <input
             type="text"
             name="hobbies"
@@ -124,6 +125,7 @@ export default function Home() {
           dangerouslySetInnerHTML={{ __html: result }}
         />
       </main>
+      <Footer/>
     </div>
   );
 }
