@@ -3,8 +3,7 @@ import React from 'react';
 const currentDate = new Date();
 const currentYear = currentDate.getFullYear();
 
-export default function Footer() 
-{
+export default function Footer(): JSX.Element {
     return (
         <React.Fragment>
             <footer>

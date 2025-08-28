@@ -1,25 +1,49 @@
 import React from 'react';
 import Head from "next/head";
-import { useState } from "react";
+import { useState, FormEvent } from "react";
 import styles from "./index.module.css";
 import Footer from "./footer";
 
-export default function Home() {
-  const [gender, setGender] = useState('Man');
-  const [age, setAge] = useState();
-  const [priceMin, setPriceMin] = useState();
-  const [priceMax, setPriceMax] = useState();
-  const [hobbies, setHobbies] = useState("");
+type Gender = 'man' | 'woman';
 
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState();
+interface GiftFormData {
+  gender: Gender;
+  age: number | undefined;
+  priceMin: number | undefined;
+  priceMax: number | undefined;
+  hobbies: string;
+}
 
-  async function onSubmit(event) {
+interface ApiResponse {
+  result?: string;
+  error?: {
+    message: string;
+  };
+}
+
+export default function Home(): JSX.Element {
+  const [gender, setGender] = useState<Gender>('man');
+  const [age, setAge] = useState<number | undefined>();
+  const [priceMin, setPriceMin] = useState<number | undefined>();
+  const [priceMax, setPriceMax] = useState<number | undefined>();
+  const [hobbies, setHobbies] = useState<string>("");
+
+  const [loading, setLoading] = useState<boolean>(false);
+  const [result, setResult] = useState<string | undefined>();
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
 
     if (loading) {
       return;
     }
+
+    // Validate required fields
+    if (!age || !priceMin || !priceMax || !hobbies.trim()) {
+      alert('Please fill in all fields');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -31,20 +55,21 @@ export default function Home() {
         body: JSON.stringify({ priceMin, priceMax, gender, age, hobbies }),
       });
 
-      const data = await response.json();
+      const data: ApiResponse = await response.json();
       if (response.status !== 200) {
-        throw data.error || new Error(`Request failed with status ${response.status}`);
+        throw new Error(data.error?.message || `Request failed with status ${response.status}`);
       }
 
       setResult(data.result);
-
       setLoading(false);
 
       
     } catch(error) {
       // Consider implementing your own error handling logic here
       console.error(error);
-      alert(error.message);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      alert(errorMessage);
+      setLoading(false);
     }
   }
 
@@ -67,7 +92,7 @@ export default function Home() {
           <select
             name="gender"
             value={gender}
-            onChange={(e) => setGender(e.target.value)}
+            onChange={(e) => setGender(e.target.value as Gender)}
           >
             <option value="man">Man</option>
             <option value="woman">Woman</option>
@@ -80,8 +105,8 @@ export default function Home() {
             max={99}
             name="age"
             placeholder="Enter the age"
-            value={age}
-            onChange={(e) => setAge(Number.parseInt(e.target.value))}
+            value={age || ''}
+            onChange={(e) => setAge(e.target.value ? parseInt(e.target.value, 10) : undefined)}
           />
 
           <label>Minimum Price</label>
@@ -90,8 +115,8 @@ export default function Home() {
             min={1}
             name="priceMin"
             placeholder="Set minimum price"
-            value={priceMin}
-            onChange={(e) => setPriceMin(Number.parseInt(e.target.value))}
+            value={priceMin || ''}
+            onChange={(e) => setPriceMin(e.target.value ? parseInt(e.target.value, 10) : undefined)}
           />
 
           <label>Maximum Price</label>
@@ -100,15 +125,15 @@ export default function Home() {
             max={10000}
             name="priceMax"
             placeholder="Set maximum price"
-            value={priceMax}
-            onChange={(e) => setPriceMax(Number.parseInt(e.target.value))}
+            value={priceMax || ''}
+            onChange={(e) => setPriceMax(e.target.value ? parseInt(e.target.value, 10) : undefined)}
           />
 
           <label>Interests or Hobbies</label>
           <input
             type="text"
             name="hobbies"
-            placeholder="Enter each seperated by comma"
+            placeholder="Enter each separated by comma"
             value={hobbies}
             onChange={(e) => setHobbies(e.target.value)}
           />
@@ -120,10 +145,13 @@ export default function Home() {
             <h4>...searching for the best gift ideas 🎁</h4>
           </div>
         )}
-        <div
-          className={styles.result}
-          dangerouslySetInnerHTML={{ __html: result }}
-        />
+        {result && (
+          <div className={styles.result}>
+            <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}>
+              {result}
+            </pre>
+          </div>
+        )}
       </main>
       <Footer/>
     </div>
